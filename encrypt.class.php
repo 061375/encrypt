@@ -89,12 +89,13 @@ class Encrypt
     /**
      *
      *  encrypt
-     *  @param string $n
-     *  @param string $s
+     *  @param string $p the password to be encrypted
+     *  @param string $s the salt
+     *  @param boolean $c compress the ourput?
      *  @return string
      *
      * */
-    function encrypt($p,$s)
+    function encrypt($p,$s,$c=true)
     {
         // build a cypher 
         $this->build_lt();
@@ -106,7 +107,8 @@ class Encrypt
         for($l = 0; $l < strlen($i); $l++) {
             $j.=$this->lt[ord(substr($i,$l,1))];
         }
-        
+        // true compress the output
+        if(true === $c)
         $j = gzcompress($j,9);
 
         return $j;
@@ -119,20 +121,28 @@ class Encrypt
      *  @return string
      *
      * */
-    function decrypt($p,$s)
+    function decrypt($p,$s,$c=true)
     {
-        // build a cypher 
+        // build a cypher if neccessary
         $this->build_lt();
-        // 
+        
+        // swap the array values for the keys 
         $tl = array();
         foreach($this->lt as $k => $v) {
             $tl[$v] = $k; 
         }
+
+        // check if the string needs to be decompressed
+        if(preg_match('/[#$%^&*()+=\-\[\]\';,.\/{}|":<>?~\\\\]/', $p) > 0)
+        $p = gzuncompress($p); // if neccessary decompress
         
-        $p = gzuncompress($p);
+        
         $x = 0;
+        
         $j = '';
+        
         $k = '';
+        
         for($l = 0; $l < strlen($p); $l++) {
             $k.=substr($p,$l,1);
             $x++;
