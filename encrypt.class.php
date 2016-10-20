@@ -17,8 +17,13 @@ class Encrypt
     //
     private $lt = false;
     //
-    
+    private $salt = false;
     //
+    private $bpos = 4;
+    //
+    private $lpos = 8;
+    //
+    
     function __construct() {
         
     }
@@ -76,18 +81,6 @@ class Encrypt
     }
     /**
      *
-     *  round_down
-     *  @param int $n
-     *  @param int $pos
-     *  @return int
-     *
-     * */
-    function round_down($n,$pos)
-    {
-        return ((int) ($n/$pos)) * $pos;
-    }
-    /**
-     *
      *  encrypt
      *  @param string $p the password to be encrypted
      *  @param string $s the salt
@@ -95,13 +88,26 @@ class Encrypt
      *  @return string
      *
      * */
-    function encrypt($p,$s,$c=true)
+    function encrypt($p,$s=false,$c=true)
     {
         // build a cypher 
         $this->build_lt();
-    
+        
+        if(false === $s)$s = $this->salt;
+        if(false === $s)$s = $this->make_salt();
+        
+        // concatnate the salt and the password
+        $i = $s['s'].$p.$s['e'];
+        
+        // magically inject the salt length and breakpoint
+        $h = '';
+        for($l = 0; $l < strlen($i); $l++) {
+            if($l == $this->bpos)$h.=chr($s['b']);
+            if($l == $this->lpos)$h.=chr($s['l']);
+            $h.=substr($i,$l,1);
+        }
         // use basic base64 encoding with a salt
-        $i = base64_encode($s.$p);
+        $i = base64_encode($h);
         // further encrypt using lt
         $j = '';
         for($l = 0; $l < strlen($i); $l++) {
@@ -121,10 +127,13 @@ class Encrypt
      *  @return string
      *
      * */
-    function decrypt($p,$s,$c=true)
+    function decrypt($p,$s=false,$c=true)
     {
         // build a cypher if neccessary
         $this->build_lt();
+        
+        if(false === $s)$s = $this->salt;
+        if(false === $s)$s = $this->make_salt();
         
         // swap the array values for the keys 
         $tl = array();
@@ -156,22 +165,81 @@ class Encrypt
         // use basic base64 encoding with a salt
         $j = base64_decode($j);
         
-        $j = str_replace($s,'',$j);
-        return $j;
+
+        // extract the length and breakpoint of the salt
+        $h = '';
+        for($l = 0; $l < strlen($j); $l++) {
+            if($l == $this->bpos)$b=ord(substr($j,$l,1));
+            if($l == ($this->lpos+1))$ll=ord(substr($j,$l,1));
+            if($l != $this->bpos AND $l != $this->lpos)
+            $h.=substr($j,$l,1);
+        }
+        
+        $k = '';
+        for($l = 0; $l < strlen($h); $l++) {
+            if($l > ($b-1) AND $l < ((strlen($h)-($ll-$b))+1))
+            $k.=substr($h,$l,1);
+        }
+        return $k;
     }
     /**
      *
      *  make_salt
-     *  @param int $l length of the string to return
+     *  @param variant $l length of the string to return
+     *  @return array
+     *  
+     * */
+    function make_salt($l = false,$b = false)
+    {
+        
+        if(false === $l) {
+            // set the salt length
+            $l = floor(mt_rand(16,100));
+        }
+        
+        if(false === $b) {
+            // set the break point
+            $b = floor(mt_rand(4,$l));
+        }
+
+        // create the salt
+        $s = '';
+        for($i=0;$i<$l;$i++){
+            $s.=chr(floor(mt_rand(33,122)));
+        }
+        
+        $return = array(
+            'l'=>$l, // salt length
+            'b'=>$b, // salt break point
+            's'=>substr($s,0,$b), // start
+            'e'=>substr($s,($b+1),strlen($s)) // end
+        );
+
+        $this->salt = $return;
+        
+        return $return;
+    }
+    /**
+     *
+     *  round_down
+     *  @param int $n
+     *  @param int $pos
+     *  @return int
+     *
+     * */
+    private function round_down($n,$pos)
+    {
+        return ((int) ($n/$pos)) * $pos;
+    }
+    /**
+     *
+     *  get_salt
+     *  wrapper to get current salt
      *  @return string
      *  
      * */
-    function make_salt($l = 16)
+    function get_salt()
     {
-        $return = '';
-        for($i=0;$i<$l;$i++){
-            $return.=chr(floor(mt_rand(33,122)));
-        }
-        return $return;
+        return $this->salt;
     }
 }
