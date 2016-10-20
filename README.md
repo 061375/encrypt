@@ -20,7 +20,7 @@ ______________________
 
 
 
-This is what the sample output might look like running the run.php ( test code )
+This is what the sample output might look like running the run.php ( test code ) from the command-line
 
 ```
 # php run.php 'Voltron is a robot and Bugatti is a super car'
