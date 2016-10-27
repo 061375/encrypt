@@ -16,6 +16,10 @@ So I built my own cypher.
 
 And this is it.
 
+A cool feature is that is contians its own salt.
+The salt is mixed in to the first encryption level based on a random length and location.
+Information about the salt to return its value is located at a specific location in the encryptd string.
+
 ______________________
 
 
