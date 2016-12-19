@@ -2,6 +2,8 @@
 
 Password encryption to be stored in the database. 
 
+I would suggest against using this on a real project...It was just for fun.
+
 I built a simple local Wiki for my home server that contained passwords.
 
 I wanted to encrypt the passwords in the database, and I needed to retreive the passwords as readable text.
