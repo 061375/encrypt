@@ -8,7 +8,7 @@ I built a simple local Wiki for my home server that contained passwords.
 
 I wanted to encrypt the passwords in the database, and I needed to retreive the passwords as readable text.
 
-So using something like an MD5 was out of the question.
+So using something like an MD5 was out of the question. ( that's a secure hash and not encryption )
 
 Its true that in my local machine...its UNLIKELY that anyone will get into the database. And lets face it...The database isn't stored remotely, and if anyone got into my machine they would, with a little hunting around, be able to find the code and then extract the passwords from the database.
 
